@@ -5,21 +5,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Check, Copy } from 'lucide-react'
 
+interface CopyItem {
+  headline: string
+  body: string
+}
+
 interface CopyCardProps {
   type: '감성형' | '후킹형' | '정보형'
   icon: React.ReactNode
-  headline: string
-  body: string
+  copies: CopyItem[]
   accentColor: string
 }
 
-export function CopyCard({ type, icon, headline, body, accentColor }: CopyCardProps) {
-  const [copied, setCopied] = useState(false)
+export function CopyCard({ type, icon, copies = [], accentColor }: CopyCardProps) {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(`${headline}\n${body}`)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopy = async (copy: CopyItem, index: number) => {
+    await navigator.clipboard.writeText(`${copy.headline}\n${copy.body}`)
+    setCopiedIndex(index)
+    setTimeout(() => setCopiedIndex(null), 2000)
   }
 
   return (
@@ -32,27 +36,37 @@ export function CopyCard({ type, icon, headline, body, accentColor }: CopyCardPr
             {type}
           </CardTitle>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCopy}
-          className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100"
-          aria-label="복사하기"
-        >
-          {copied ? (
-            <Check className="h-4 w-4 text-accent" />
-          ) : (
-            <Copy className="h-4 w-4 text-muted-foreground" />
-          )}
-        </Button>
       </CardHeader>
-      <CardContent className="space-y-2">
-        <p className="text-lg font-semibold leading-relaxed text-foreground">
-          {headline || '헤드라인이 여기에 표시됩니다'}
-        </p>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {body || '본문이 여기에 표시됩니다'}
-        </p>
+      <CardContent className="space-y-4">
+        {copies.length > 0 ? (
+          copies.map((copy, index) => (
+            <div key={index} className="group/item relative rounded-md border border-transparent p-3 transition-colors hover:border-border/50 hover:bg-muted/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleCopy(copy, index)}
+                className="absolute right-2 top-2 h-8 w-8 p-0 opacity-0 transition-opacity group-hover/item:opacity-100"
+                aria-label="복사하기"
+              >
+                {copiedIndex === index ? (
+                  <Check className="h-4 w-4 text-emerald-500" />
+                ) : (
+                  <Copy className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+              <p className="pr-8 text-base font-semibold leading-relaxed text-foreground">
+                {copy.headline}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                {copy.body}
+              </p>
+            </div>
+          ))
+        ) : (
+          <div className="p-3 text-sm text-muted-foreground">
+            결과가 여기에 표시됩니다.
+          </div>
+        )}
       </CardContent>
     </Card>
   )
